@@ -19,6 +19,8 @@ struct ContentView: View {
     var body: some View {
         ZStack {
             Color(model.appleWatchIsConnected ? .green : .red)
+                .opacity(0.5)
+                .ignoresSafeArea()
             Text(model.label)
         }
     }
