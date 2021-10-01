@@ -18,11 +18,8 @@ struct ContentView: View {
 
     var body: some View {
         ZStack {
-            Text(model.label)
             Color(model.appleWatchIsConnected ? .green : .red)
-                .ignoresSafeArea()
-                .frame(height: 0)
-                .frame(maxHeight: .infinity, alignment: .top)
+            Text(model.label)
         }
     }
 }
