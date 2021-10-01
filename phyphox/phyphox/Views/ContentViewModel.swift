@@ -9,6 +9,7 @@ import SwiftUI
 import Combine
 
 class ContentViewModel: ObservableObject {
+    @Published private var services: Services
     var cancellable = Set<AnyCancellable>()
 
     @Published var appleWatchIsConnected: Bool
@@ -18,6 +19,7 @@ class ContentViewModel: ObservableObject {
     @Published var direction: (x: Float, y: Float, z: Float) = (x: 0, y: 0, z: 0)
 
     init(services: Services) {
+        self.services = services
         appleWatchIsConnected = services.watchSession.watchIsConnected
         services.watchSession.$watchIsConnected
             .receive(on: DispatchQueue.main)
@@ -25,7 +27,9 @@ class ContentViewModel: ObservableObject {
                 self?.appleWatchIsConnected = response
             }
             .store(in: &cancellable)
+    }
 
+    func connect() {
         services.nearbyService.startWatchSession(services.watchSession)
             .receive(on: DispatchQueue.main)
             .sink { response in

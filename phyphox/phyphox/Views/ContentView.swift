@@ -21,6 +21,12 @@ struct ContentView: View {
             VStack {
                 Text("Distance: \(String(format: "%.3f", model.distance))m")
                 Text("Direction: x: \(model.direction.x), y: \(model.direction.y), z: \(model.direction.z)")
+                Button {
+                    model.connect()
+                } label: {
+                    Text("Pair with Watch")
+                }
+
             }
             Color(model.appleWatchIsConnected ? .green : .red)
                 .ignoresSafeArea()
