@@ -17,8 +17,22 @@ struct ContentView: View {
     }
 
     var body: some View {
-        VStack {
-            Text("hi, jens")
+        ZStack {
+            Text(model.label)
+            Color(model.appleWatchIsConnected ? .green : .red)
+                .ignoresSafeArea()
+                .frame(height: 0)
+                .frame(maxHeight: .infinity, alignment: .top)
+        }
+    }
+}
+
+struct ContentView_Previews: PreviewProvider {
+    static var previews: some View {
+        ContentView(services: Services())
+    }
+}
+
 //            Text("**Version 1.0**")
 //            Line(data: model.xDataArray, frame: .constant(CGRect(x: 0, y: 0, width: 200, height: 80)))
 //            Text("**X**: \(String(format: "%.2f", model.currentXData))")
@@ -31,12 +45,3 @@ struct ContentView: View {
 //                        .foregroundColor(model.watchServices.watchIsConnected ? .green : .red)
 //                }
 //            }
-        }
-    }
-}
-
-struct ContentView_Previews: PreviewProvider {
-    static var previews: some View {
-        ContentView(services: Services())
-    }
-}

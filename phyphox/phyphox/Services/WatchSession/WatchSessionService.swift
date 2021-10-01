@@ -17,7 +17,7 @@ class WCService: NSObject, ObservableObject {
     }
     @Published var watchIsConnected: Bool = false
 
-    private(set) var passthroughMessage: PassthroughSubject<[String: Any], Never> = .init()
+    private(set) var receiveMessages: PassthroughSubject<String, Never> = .init()
 
     init(nearbyService: NearbyService) {
         self.session = WCSession.default
@@ -56,15 +56,14 @@ extension WCService: WCSessionDelegate {
     }
 
     func session(_ session: WCSession, didReceiveMessage message: [String : Any], replyHandler: @escaping ([String : Any]) -> Void) {
-        self.passthroughMessage.send(message)
         if let discoveryToken = message["NearbySessionInvitation"] as? NIDiscoveryToken {
             nearbyService.acceptSessionInvitation(with: discoveryToken)
+            receiveMessages.send("Start Session")
         }
-        replyHandler(["Message" : "Recived"])
     }
 
     func session(_ session: WCSession, didReceiveApplicationContext applicationContext: [String : Any]) {
-        self.passthroughMessage.send(applicationContext)
+        self.receiveMessages.send(applicationContext.first?.value as? String ?? "")
     }
 
     #if os(iOS)
