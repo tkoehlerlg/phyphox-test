@@ -26,7 +26,6 @@ struct ContentView: View {
                 } label: {
                     Text("Pair with Watch")
                 }
-
             }
             Color(model.appleWatchIsConnected ? .green : .red)
                 .ignoresSafeArea()
