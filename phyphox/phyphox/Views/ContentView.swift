@@ -29,17 +29,33 @@ struct ContentView: View {
                         Text("Send Message")
                     }
                 }
+                #if !targetEnvironment(simulator)
                 Spacer()
-                    .frame(height: 100)
+                    .frame(height: 50)
                 Group {
+                        Text("Test 2 - Session Key")
+                            .bold()
+                        Text("\(model.test2Message ?? "(Answer)")")
+                        Button {
+                            model.launchTest2()
+                        } label: {
+                            Text("Send Message")
+                        }
+                    }
+                    Spacer()
+                        .frame(height: 50)
+                Group {
+                    Text("Test 3 - Session completed")
+                        .bold()
                     Text("Distance: \(String(format: "%.3f", model.distance))m")
                     Text("Direction: x: \(model.direction.x), y: \(model.direction.y), z: \(model.direction.z)")
                     Button {
                         model.connect()
                     } label: {
-                        Text("Pair with Watch")
+                        Text("Start Session")
                     }
                 }
+                #endif
             }
             Color(model.appleWatchIsConnected ? .green : .red)
                 .ignoresSafeArea()

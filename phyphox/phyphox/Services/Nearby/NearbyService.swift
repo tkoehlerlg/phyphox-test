@@ -8,6 +8,7 @@
 import Combine
 import NearbyInteraction
 
+#if !targetEnvironment(simulator)
 class NearbyService: NSObject, ObservableObject {
     private var session: NISession
     var isSupported: Bool {
@@ -121,3 +122,4 @@ extension NearbyService: NISessionDelegate {
         }
     }
 }
+#endif

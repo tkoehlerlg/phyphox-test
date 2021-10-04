@@ -11,7 +11,9 @@ import NearbyInteraction
 
 class WCService: NSObject, ObservableObject {
     private let session: WCSession
+    #if !targetEnvironment(simulator)
     private let nearbyService: NearbyService
+    #endif
     var isSupported: Bool {
         WCSession.isSupported()
     }
@@ -19,6 +21,7 @@ class WCService: NSObject, ObservableObject {
 
     private(set) var receiveMessages: PassthroughSubject<String, Never> = .init()
 
+    #if !targetEnvironment(simulator)
     init(nearbyService: NearbyService) {
         self.session = WCSession.default
         self.nearbyService = nearbyService
@@ -27,6 +30,15 @@ class WCService: NSObject, ObservableObject {
         session.delegate = self
         session.activate()
     }
+    #else
+    override init() {
+        self.session = WCSession.default
+        super.init()
+
+        session.delegate = self
+        session.activate()
+    }
+    #endif
 
     func sendMessageWithResponse(_ message: [String: Any]) -> AnyPublisher<[String: Any], Error> {
         let passtroughtSubject: PassthroughSubject<[String: Any], Error> = .init()
@@ -57,10 +69,12 @@ extension WCService: WCSessionDelegate {
 
     func session(_ session: WCSession, didReceiveMessage message: [String : Any], replyHandler: @escaping ([String : Any]) -> Void) {
         #if os(watchOS)
+        #if !targetEnvironment(simulator)
         if let discoveryToken = message["NearbySessionInvitation"] as? NIDiscoveryToken {
             nearbyService.acceptSessionInvitation(with: discoveryToken)
             receiveMessages.send("Start Session")
         }
+        #endif
         if message["Test1"] != nil {
             receiveMessages.send("Test 1")
             replyHandler(["Test1" : "Some watch-message"])

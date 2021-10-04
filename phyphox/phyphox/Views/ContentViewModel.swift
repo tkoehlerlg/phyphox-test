@@ -7,6 +7,7 @@
 
 import SwiftUI
 import Combine
+import NearbyInteraction
 
 class ContentViewModel: ObservableObject {
     @Published private var services: Services
@@ -41,7 +42,28 @@ class ContentViewModel: ObservableObject {
             .store(in: &cancellable)
     }
 
+    @Published var test2Message: String?
+    func launchTest2() {
+        #if !targetEnvironment(simulator)
+        services.watchSession.sendMessageWithResponse(["NearbySessionInvitation" : services.nearbyService.session.discoveryToken])
+            .receive(on: DispatchQueue.main)
+            .sink { response in
+                switch response {
+                case .finished:
+                    print("Test 2 - respondet")
+                case let .failure(error):
+                    print(error)
+                }
+            } receiveValue: { [weak self] response in
+                self?.test2Message = "Response: "
+                self?.test2Message += (response["NearbySessionResponse"] as? NIDiscoveryToken)?.description
+            }
+            .store(in: &cancellable)
+        #endif
+    }
+
     func connect() {
+        #if !targetEnvironment(simulator)
         services.nearbyService.startWatchSession(services.watchSession)
             .receive(on: DispatchQueue.main)
             .sink { response in
@@ -61,5 +83,6 @@ class ContentViewModel: ObservableObject {
                 )
             }
             .store(in: &cancellable)
+        #endif
     }
 }
