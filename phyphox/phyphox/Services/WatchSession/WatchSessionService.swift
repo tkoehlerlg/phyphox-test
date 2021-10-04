@@ -73,6 +73,8 @@ extension WCService: WCSessionDelegate {
         if let discoveryToken = message["NearbySessionInvitation"] as? Data {
             nearbyService.acceptSessionInvitation(with: discoveryToken)
             receiveMessages.send("Start Session")
+            guard let encryptedToken = nearbyService.discoveryTokenEncrypted else { return }
+            replyHandler(["NearbySessionResponse": encryptedToken])
         }
         #endif
         if message["Test1"] != nil {

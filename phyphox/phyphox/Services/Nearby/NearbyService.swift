@@ -92,10 +92,7 @@ class NearbyService: NSObject, ObservableObject {
                             print("Watch not connected: \(error)")
                         }
                     }, receiveValue: { [weak self] response in
-                        guard
-                            let sessionResponse = response["NearbySessionResponse"],
-                            let token = sessionResponse as? NIDiscoveryToken
-                        else { return }
+                        guard let token = response["NearbySessionResponse"] as? Data else { return }
                         self?.acceptSessionInvitation(with: token)
                     })
                     .store(in: &cancellable)
