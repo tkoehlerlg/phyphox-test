@@ -62,7 +62,7 @@ class NearbyService: NSObject, ObservableObject {
         if sessionService.watchIsConnected {
             if let discoveryToken = session.discoveryToken {
                 sessionService.sendMessageWithResponse(
-                    ["NearbySessionInvitation": "\(discoveryToken)"]
+                    ["NearbySessionInvitation": discoveryToken]
                 )
                     .receive(on: DispatchQueue.main)
                     .sink(receiveCompletion: { response in

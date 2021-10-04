@@ -19,8 +19,15 @@ class ContentViewModel: ObservableObject {
     @Published var distance: Float = 0
     @Published var direction: (x: Float, y: Float, z: Float) = (x: 0, y: 0, z: 0)
 
+    #if !targetEnvironment(simulator)
+    let discoveryToken: NIDiscoveryToken
+    #endif
+
     init(services: Services) {
         self.services = services
+        #if !targetEnvironment(simulator)
+        self.discoveryToken = services.nearbyService.session.discoveryToken
+        #endif
         appleWatchIsConnected = services.watchSession.watchIsConnected
         services.watchSession.$watchIsConnected.assign(to: &$appleWatchIsConnected)
     }
@@ -45,7 +52,9 @@ class ContentViewModel: ObservableObject {
     @Published var test2Message: String?
     func launchTest2() {
         #if !targetEnvironment(simulator)
-        services.watchSession.sendMessageWithResponse(["NearbySessionInvitation" : services.nearbyService.session.discoveryToken])
+        services.watchSession.sendMessageWithResponse(
+            ["NearbySessionInvitation" : discoveryToken]
+        )
             .receive(on: DispatchQueue.main)
             .sink { response in
                 switch response {
