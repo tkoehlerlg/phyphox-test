@@ -79,7 +79,7 @@ class NearbyService: NSObject, ObservableObject {
     func startWatchSession(_ sessionService: WCService) -> PassthroughSubject<NINearbyObject, Errors> {
         let passthroughSubject: PassthroughSubject<NINearbyObject, Errors> = .init()
         if sessionService.watchIsConnected {
-            if let discoveryToken = session.discoveryToken {
+            if let discoveryToken = discoveryTokenEncrypted {
                 sessionService.sendMessageWithResponse(
                     ["NearbySessionInvitation": discoveryToken]
                 )
@@ -101,7 +101,7 @@ class NearbyService: NSObject, ObservableObject {
                     passthroughSubject.send(completion: .failure(.noDiscoveryToken))
                 }
             }
-        }
+        } else { print("Watch is not connected")}
         return passthroughSubject
     }
     #endif
