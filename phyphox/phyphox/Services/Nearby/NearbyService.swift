@@ -94,6 +94,9 @@ class NearbyService: NSObject, ObservableObject {
                     }, receiveValue: { [weak self] response in
                         guard let token = response["NearbySessionResponse"] as? Data else { return }
                         self?.acceptSessionInvitation(with: token)
+                        DispatchQueue.main.asyncAfter(deadline: .now()+1) {
+                            passthroughSubject.send(completion: .finished)
+                        }
                     })
                     .store(in: &cancellable)
             } else {
@@ -111,6 +114,7 @@ extension NearbyService: NISessionDelegate {
     // updates the distance and direction
     func session(_ session: NISession, didUpdate nearbyObjects: [NINearbyObject]) {
         nearbyObjects.forEach { object in
+            print("update")
             self.currentSessions.forEach { session in
                 guard let discoveryToken = NearbyService.decryptDiscoveryToken(session.key) else { return }
                 if object.discoveryToken == discoveryToken {
