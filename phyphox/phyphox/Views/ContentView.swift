@@ -19,12 +19,26 @@ struct ContentView: View {
     var body: some View {
         ZStack {
             VStack {
-                Text("Distance: \(String(format: "%.3f", model.distance))m")
-                Text("Direction: x: \(model.direction.x), y: \(model.direction.y), z: \(model.direction.z)")
-                Button {
-                    model.connect()
-                } label: {
-                    Text("Pair with Watch")
+                Group {
+                    Text("Test 1 - Watch Message")
+                        .bold()
+                    Text("\(model.test1Message ?? "(Answer)")")
+                    Button {
+                        model.launchTest1()
+                    } label: {
+                        Text("Send Message")
+                    }
+                }
+                Spacer()
+                    .frame(height: 100)
+                Group {
+                    Text("Distance: \(String(format: "%.3f", model.distance))m")
+                    Text("Direction: x: \(model.direction.x), y: \(model.direction.y), z: \(model.direction.z)")
+                    Button {
+                        model.connect()
+                    } label: {
+                        Text("Pair with Watch")
+                    }
                 }
             }
             Color(model.appleWatchIsConnected ? .green : .red)

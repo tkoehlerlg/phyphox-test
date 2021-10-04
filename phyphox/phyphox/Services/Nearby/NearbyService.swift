@@ -43,11 +43,16 @@ class NearbyService: NSObject, ObservableObject {
         session.run(config)
     }
 
-    func acceptSessionInvitation(with token: NIDiscoveryToken) -> PassthroughSubject<NINearbyObject, Errors> {
+    func acceptSessionInvitationWithResponse(with token: NIDiscoveryToken) -> PassthroughSubject<NINearbyObject, Errors> {
         let passthroughSubject: PassthroughSubject<NINearbyObject, Errors> = .init()
         self.currentSessions[token] = passthroughSubject
         self.startSession(with: token)
         return passthroughSubject
+    }
+
+    func acceptSessionInvitation(with token: NIDiscoveryToken) {
+        self.currentSessions[token] = .init()
+        self.startSession(with: token)
     }
 
     #if os(iOS)

@@ -12,7 +12,7 @@ class ContentViewModel: ObservableObject {
     var cancellable = Set<AnyCancellable>()
 
     @Published var appleWatchIsConnected: Bool
-    @Published var label: String = "Hi Jens ;)"
+    @Published var label: String = ""
 
     init(services: Services) {
         appleWatchIsConnected = services.watchSession.watchIsConnected

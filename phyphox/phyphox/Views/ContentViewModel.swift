@@ -21,10 +21,22 @@ class ContentViewModel: ObservableObject {
     init(services: Services) {
         self.services = services
         appleWatchIsConnected = services.watchSession.watchIsConnected
-        services.watchSession.$watchIsConnected
+        services.watchSession.$watchIsConnected.assign(to: &$appleWatchIsConnected)
+    }
+
+    @Published var test1Message: String?
+    func launchTest1() {
+        services.watchSession.sendMessageWithResponse(["Test1" : "Some Message"])
             .receive(on: DispatchQueue.main)
-            .sink { [weak self] response in
-                self?.appleWatchIsConnected = response
+            .sink { response in
+                switch response {
+                case .finished:
+                    print("Test 1 - respondet")
+                case let .failure(error):
+                    print(error)
+                }
+            } receiveValue: { [weak self] response in
+                self?.test1Message = response["Test1"] as? String
             }
             .store(in: &cancellable)
     }

@@ -56,10 +56,16 @@ extension WCService: WCSessionDelegate {
     }
 
     func session(_ session: WCSession, didReceiveMessage message: [String : Any], replyHandler: @escaping ([String : Any]) -> Void) {
+        #if os(watchOS)
         if let discoveryToken = message["NearbySessionInvitation"] as? NIDiscoveryToken {
             nearbyService.acceptSessionInvitation(with: discoveryToken)
             receiveMessages.send("Start Session")
         }
+        if message["Test1"] != nil {
+            receiveMessages.send("Test 1")
+            replyHandler(["Test1" : "Some watch-message"])
+        }
+        #endif
     }
 
     func session(_ session: WCSession, didReceiveApplicationContext applicationContext: [String : Any]) {
