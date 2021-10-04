@@ -19,15 +19,8 @@ class ContentViewModel: ObservableObject {
     @Published var distance: Float = 0
     @Published var direction: (x: Float, y: Float, z: Float) = (x: 0, y: 0, z: 0)
 
-    #if !targetEnvironment(simulator)
-    let discoveryToken: NIDiscoveryToken
-    #endif
-
     init(services: Services) {
         self.services = services
-        #if !targetEnvironment(simulator)
-        self.discoveryToken = services.nearbyService.session.discoveryToken
-        #endif
         appleWatchIsConnected = services.watchSession.watchIsConnected
         services.watchSession.$watchIsConnected.assign(to: &$appleWatchIsConnected)
     }
@@ -52,8 +45,12 @@ class ContentViewModel: ObservableObject {
     @Published var test2Message: String?
     func launchTest2() {
         #if !targetEnvironment(simulator)
+        guard let tokenEncryped = services.nearbyService.discoveryTokenEncrypted else {
+            print("Encryption error in test")
+            return
+        }
         services.watchSession.sendMessageWithResponse(
-            ["NearbySessionInvitation" : discoveryToken]
+            ["NearbySessionInvitation" : tokenEncryped]
         )
             .receive(on: DispatchQueue.main)
             .sink { response in
@@ -64,8 +61,10 @@ class ContentViewModel: ObservableObject {
                     print(error)
                 }
             } receiveValue: { [weak self] response in
-                self?.test2Message = "Response: "
-                self?.test2Message += (response["NearbySessionResponse"] as? NIDiscoveryToken)?.description
+                self?.test2Message = "Response: Data..."
+                if let data = response["NearbySessionResponse"] as? Data {
+                    self?.test2Message = "Response: \((NearbyService.decryptDiscoveryToken(data)?.description) ?? "Cant Decrypeted")"
+                }
             }
             .store(in: &cancellable)
         #endif

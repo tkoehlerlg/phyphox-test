@@ -70,7 +70,7 @@ extension WCService: WCSessionDelegate {
     func session(_ session: WCSession, didReceiveMessage message: [String : Any], replyHandler: @escaping ([String : Any]) -> Void) {
         #if os(watchOS)
         #if !targetEnvironment(simulator)
-        if let discoveryToken = message["NearbySessionInvitation"] as? NIDiscoveryToken {
+        if let discoveryToken = message["NearbySessionInvitation"] as? Data {
             nearbyService.acceptSessionInvitation(with: discoveryToken)
             receiveMessages.send("Start Session")
         }

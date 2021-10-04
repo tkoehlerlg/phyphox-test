@@ -14,12 +14,16 @@ class NearbyService: NSObject, ObservableObject {
     var isSupported: Bool {
         NISession.isSupported
     }
+    var discoveryTokenEncrypted: Data? {
+        guard let discoveryToken = session.discoveryToken else { return nil }
+        return NearbyService.encryptDiscoveryToken(discoveryToken)
+    }
     private(set) var currentSessions: [
-        NIDiscoveryToken: PassthroughSubject<NINearbyObject, Errors>
+        Data: PassthroughSubject<NINearbyObject, Errors>
     ] = [:]
 
     enum Errors: String, Error {
-        case noDiscoveryToken, objectCantBeFoundLonger, sessionClosed
+        case noDiscoveryToken, objectCantBeFoundLonger, sessionClosed, tokenCanNotEncrypted
     }
 
     private var cancellable = Set<AnyCancellable>()
@@ -46,14 +50,29 @@ class NearbyService: NSObject, ObservableObject {
 
     func acceptSessionInvitationWithResponse(with token: NIDiscoveryToken) -> PassthroughSubject<NINearbyObject, Errors> {
         let passthroughSubject: PassthroughSubject<NINearbyObject, Errors> = .init()
-        self.currentSessions[token] = passthroughSubject
-        self.startSession(with: token)
+        if let encryptToken = NearbyService.encryptDiscoveryToken(token) {
+            self.currentSessions[encryptToken] = passthroughSubject
+            self.startSession(with: token)
+        } else {
+            DispatchQueue.main.asyncAfter(deadline: .now()+1) {
+                passthroughSubject.send(completion: .failure(.tokenCanNotEncrypted))
+            }
+        }
         return passthroughSubject
     }
 
     func acceptSessionInvitation(with token: NIDiscoveryToken) {
-        self.currentSessions[token] = .init()
-        self.startSession(with: token)
+        if let encryptToken = NearbyService.encryptDiscoveryToken(token) {
+            self.currentSessions[encryptToken] = .init()
+            self.startSession(with: token)
+        }
+    }
+
+    func acceptSessionInvitation(with token: Data) {
+        if let decryptToken = NearbyService.decryptDiscoveryToken(token) {
+            self.currentSessions[token] = .init()
+            self.startSession(with: decryptToken)
+        }
     }
 
     #if os(iOS)
@@ -72,13 +91,12 @@ class NearbyService: NSObject, ObservableObject {
                         case let .failure(error):
                             print("Watch not connected: \(error)")
                         }
-                    }, receiveValue: { response in
+                    }, receiveValue: { [weak self] response in
                         guard
                             let sessionResponse = response["NearbySessionResponse"],
                             let token = sessionResponse as? NIDiscoveryToken
                         else { return }
-                        self.currentSessions[token] = passthroughSubject
-                        self.startSession(with: token)
+                        self?.acceptSessionInvitation(with: token)
                     })
                     .store(in: &cancellable)
             } else {
@@ -97,7 +115,8 @@ extension NearbyService: NISessionDelegate {
     func session(_ session: NISession, didUpdate nearbyObjects: [NINearbyObject]) {
         nearbyObjects.forEach { object in
             self.currentSessions.forEach { session in
-                if object.discoveryToken == session.key {
+                guard let discoveryToken = NearbyService.decryptDiscoveryToken(session.key) else { return }
+                if object.discoveryToken == discoveryToken {
                     session.value.send(object)
                 }
             }
@@ -108,7 +127,8 @@ extension NearbyService: NISessionDelegate {
     func session(_ session: NISession, didRemove nearbyObjects: [NINearbyObject], reason: NINearbyObject.RemovalReason) {
         nearbyObjects.forEach { object in
             self.currentSessions.forEach { session in
-                if object.discoveryToken == session.key {
+                guard let discoveryToken = NearbyService.decryptDiscoveryToken(session.key) else { return }
+                if object.discoveryToken == discoveryToken {
                     session.value.send(completion: .failure(.objectCantBeFoundLonger))
                 }
             }
@@ -120,6 +140,17 @@ extension NearbyService: NISessionDelegate {
         self.currentSessions.forEach { session in
             session.value.send(completion: .failure(.sessionClosed))
         }
+    }
+}
+
+// MARK: Key Cription
+extension NearbyService {
+    static func encryptDiscoveryToken(_ token: NIDiscoveryToken) -> Data? {
+        return try? NSKeyedArchiver.archivedData(withRootObject: token, requiringSecureCoding: true)
+    }
+
+    static func decryptDiscoveryToken(_ data: Data) -> NIDiscoveryToken? {
+        return try? NSKeyedUnarchiver.unarchivedObject(ofClass: NIDiscoveryToken.self, from: data)
     }
 }
 #endif
