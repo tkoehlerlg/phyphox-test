@@ -35,6 +35,7 @@ class NearbyService: NSObject, ObservableObject {
         self.startNearbySession()
     }
     private func startNearbySession() {
+        print(NearbyService.nearbySessionsAvailable)
         if NearbyService.nearbySessionsAvailable {
             self.nearbySession = NISession()
             nearbySession?.delegate = self
