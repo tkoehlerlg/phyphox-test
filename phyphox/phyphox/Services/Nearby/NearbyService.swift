@@ -35,11 +35,12 @@ class NearbyService: NSObject, ObservableObject {
         self.startNearbySession()
     }
     func startNearbySession() {
-        print(NearbyService.nearbySessionsAvailable)
-        if NearbyService.nearbySessionsAvailable {
-            self.nearbySession = NISession()
-            nearbySession?.delegate = self
+        guard NISession.isSupported else {
+            print("This device doesn't support Nearby Interaction.")
+            return
         }
+        self.nearbySession = NISession()
+        nearbySession?.delegate = self
     }
 
     func addDeviceToSession(
