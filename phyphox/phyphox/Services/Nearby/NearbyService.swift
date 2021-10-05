@@ -67,6 +67,7 @@ class NearbyService: NSObject, ObservableObject {
 extension NearbyService: NISessionDelegate {
     // updates the distance and direction
     func session(_ session: NISession, didUpdate nearbyObjects: [NINearbyObject]) {
+        print("update")
         nearbyObjects.forEach { object in
             guard let encryptedDiscoveryToken = encryptDiscoveryToken(object.discoveryToken) else { return }
             currentSessions[encryptedDiscoveryToken]?.send(object)
