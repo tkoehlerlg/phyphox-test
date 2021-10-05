@@ -30,11 +30,11 @@ class NearbyService: NSObject, ObservableObject {
     }
 
     // MARK: Session start
-    override init() {
-        super.init()
-        self.startNearbySession()
-    }
-    private func startNearbySession() {
+//    override init() {
+//        super.init()
+//        self.startNearbySession()
+//    }
+    func startNearbySession() {
         print(NearbyService.nearbySessionsAvailable)
         if NearbyService.nearbySessionsAvailable {
             self.nearbySession = NISession()
