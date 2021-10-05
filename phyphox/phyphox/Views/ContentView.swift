@@ -70,25 +70,3 @@ struct ContentView_Previews: PreviewProvider {
         ContentView(services: Services())
     }
 }
-
-//        VStack {
-//            Text(model.label)
-//            Button {
-//                model.sendMessage("What ever it takes")
-//            } label: {
-//                Text("Start")
-//            }
-//            Color(model.watchServices.watchIsConnected ? .green : .red)
-//                .ignoresSafeArea()
-//                .frame(height: 50)
-//                .ignoresSafeArea()
-//            Line(data: model.xDataArray, frame: .constant(CGRect(x: 0, y: 0, width: 400, height: 200)))
-//            .frame(width: 400, height: 200, alignment: .center)
-//            Text("X: \(model.currentXData)")
-//            Line(data: model.yDataArray, frame: .constant(CGRect(x: 0, y: 0, width: 400, height: 200)))
-//            .frame(width: 400, height: 200, alignment: .center)
-//            Text("Y: \(model.currentYData)")
-//            Line(data: model.zDataArray, frame: .constant(CGRect(x: 0, y: 0, width: 400, height: 200)))
-//            .frame(width: 400, height: 200, alignment: .center)
-//            Text("Z: \(model.currentZData)")
-//        }

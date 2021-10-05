@@ -11,17 +11,15 @@ import NearbyInteraction
 
 class WCService: NSObject, ObservableObject {
     private let session: WCSession
-    #if !targetEnvironment(simulator)
     private let nearbyService: NearbyService
-    #endif
     var isSupported: Bool {
         WCSession.isSupported()
     }
     @Published var watchIsConnected: Bool = false
 
     private(set) var receiveMessages: PassthroughSubject<String, Never> = .init()
+    private var cancellable = Set<AnyCancellable>()
 
-    #if !targetEnvironment(simulator)
     init(nearbyService: NearbyService) {
         self.session = WCSession.default
         self.nearbyService = nearbyService
@@ -30,15 +28,6 @@ class WCService: NSObject, ObservableObject {
         session.delegate = self
         session.activate()
     }
-    #else
-    override init() {
-        self.session = WCSession.default
-        super.init()
-
-        session.delegate = self
-        session.activate()
-    }
-    #endif
 
     func sendMessageWithResponse(_ message: [String: Any]) -> AnyPublisher<[String: Any], Error> {
         let passtroughtSubject: PassthroughSubject<[String: Any], Error> = .init()
@@ -56,8 +45,25 @@ class WCService: NSObject, ObservableObject {
     }
 
     #if os(iOS)
-    func transfer(_ message: [String: Any]) {
-        session.transferCurrentComplicationUserInfo(message)
+    // MARK: NearbyInteraction
+    func startNearbyInteractionSessionWithWatch() -> PassthroughSubject<NINearbyObject, NearbyService.Errors>? {
+        let passthroughSubject = PassthroughSubject<NINearbyObject, NearbyService.Errors>()
+        guard let discoveryTokenEncrypted = nearbyService.discoveryTokenEncrypted else { return nil }
+        self.sendMessageWithResponse(["NearbySessionInvitation" : discoveryTokenEncrypted])
+            .receive(on: DispatchQueue.main)
+            .sink { response in
+                switch response {
+                case .finished:
+                    print("NearbySession response received")
+                case let .failure(error):
+                    print("NearbySession error: \(error)")
+                }
+            } receiveValue: { [weak self] response in
+                guard let encryptedToken = response["NearbySessionResponse"] as? Data else { return }
+                self?.nearbyService.addDeviceToSession(data: encryptedToken, with: passthroughSubject)
+            }
+            .store(in: &self.cancellable)
+        return passthroughSubject
     }
     #endif
 }
@@ -65,22 +71,37 @@ class WCService: NSObject, ObservableObject {
 extension WCService: WCSessionDelegate {
     func session(_ session: WCSession, activationDidCompleteWith activationState: WCSessionActivationState, error: Error?) {
         watchIsConnected = true
+        objectWillChange.send()
     }
 
+    // MARK: Responses
+    // - NearbyInteraction
     func session(_ session: WCSession, didReceiveMessage message: [String : Any], replyHandler: @escaping ([String : Any]) -> Void) {
         #if os(watchOS)
-        #if !targetEnvironment(simulator)
+        // Reply to NearbySession
         if let discoveryToken = message["NearbySessionInvitation"] as? Data {
-            nearbyService.acceptSessionInvitation(with: discoveryToken)
+            nearbyService.addDeviceToSession(data: discoveryToken)
             receiveMessages.send("Start Session")
+
+            // send back
             guard let encryptedToken = nearbyService.discoveryTokenEncrypted else { return }
             replyHandler(["NearbySessionResponse": encryptedToken])
         }
-        #endif
+        // Test Session
+        if (message["NearbySessionInvitation-Test"] as? Data) != nil {
+            receiveMessages.send("Test Session")
+
+            // send back
+            guard let encryptedToken = nearbyService.discoveryTokenEncrypted else { return }
+            replyHandler(["NearbySessionResponse": encryptedToken])
+        }
+        // Test 1
         if message["Test1"] != nil {
             receiveMessages.send("Test 1")
             replyHandler(["Test1" : "Some watch-message"])
         }
+        #elseif os(iOS)
+        // ios responsesd
         #endif
     }
 
@@ -91,10 +112,12 @@ extension WCService: WCSessionDelegate {
     #if os(iOS)
     func sessionDidBecomeInactive(_ session: WCSession) {
         watchIsConnected = false
+        objectWillChange.send()
     }
 
     func sessionDidDeactivate(_ session: WCSession) {
         watchIsConnected = false
+        objectWillChange.send()
     }
     #endif
 }

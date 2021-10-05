@@ -50,7 +50,7 @@ class ContentViewModel: ObservableObject {
             return
         }
         services.watchSession.sendMessageWithResponse(
-            ["NearbySessionInvitation" : tokenEncryped]
+            ["NearbySessionInvitation-Test" : tokenEncryped]
         )
             .receive(on: DispatchQueue.main)
             .sink { response in
@@ -63,7 +63,7 @@ class ContentViewModel: ObservableObject {
             } receiveValue: { [weak self] response in
                 self?.test2Message = "Response: Data..."
                 if let data = response["NearbySessionResponse"] as? Data {
-                    self?.test2Message = "Response: \((NearbyService.decryptDiscoveryToken(data)?.description) ?? "Cant Decrypeted")"
+                    self?.test2Message = "Response: \((self?.services.nearbyService.decryptDiscoveryToken(data)?.description) ?? "Cant Decrypeted")"
                 }
             }
             .store(in: &cancellable)
@@ -72,7 +72,8 @@ class ContentViewModel: ObservableObject {
 
     func connect() {
         #if !targetEnvironment(simulator)
-        services.nearbyService.startWatchSession(services.watchSession)
+        guard let handler = services.watchSession.startNearbyInteractionSessionWithWatch() else { return }
+        handler
             .receive(on: DispatchQueue.main)
             .sink { response in
                 switch response {
