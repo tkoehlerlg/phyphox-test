@@ -71,7 +71,7 @@ class ContentViewModel: ObservableObject {
     }
 
     func connect() {
-        services.nearbyService.startNearbySession()
+//        services.nearbyService.startNearbySession()
         #if !targetEnvironment(simulator)
         guard let handler = services.watchSession.startNearbyInteractionSessionWithWatch() else { return }
         handler
