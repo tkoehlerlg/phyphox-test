@@ -9,9 +9,9 @@ import Combine
 import WatchConnectivity
 import NearbyInteraction
 
-class WCService: NSObject, ObservableObject {
+class WatchSessionService: NSObject, ObservableObject {
     private let session: WCSession
-    private let nearbyService: NearbyService
+    internal let nearbyService: NearbyService
     var isSupported: Bool {
         WCSession.isSupported()
     }
@@ -68,7 +68,7 @@ class WCService: NSObject, ObservableObject {
     #endif
 }
 
-extension WCService: WCSessionDelegate {
+extension WatchSessionService: WCSessionDelegate {
     func session(_ session: WCSession, activationDidCompleteWith activationState: WCSessionActivationState, error: Error?) {
         watchIsConnected = true
         objectWillChange.send()
@@ -80,12 +80,7 @@ extension WCService: WCSessionDelegate {
         #if os(watchOS)
         // Reply to NearbySession
         if let discoveryToken = message["NearbySessionInvitation"] as? Data {
-            nearbyService.addDeviceToSession(data: discoveryToken)
-            receiveMessages.send("Start Session")
-
-            // send back
-            guard let encryptedToken = nearbyService.discoveryTokenEncrypted else { return }
-            replyHandler(["NearbySessionResponse": encryptedToken])
+            receivedNearbyInvitation(data: discoveryToken, replyHandler: replyHandler)
         }
         // Test Session
         if (message["NearbySessionInvitation-Test"] as? Data) != nil {
@@ -121,3 +116,17 @@ extension WCService: WCSessionDelegate {
     }
     #endif
 }
+
+#if os(watchOS)
+// MARK: Nearby Service
+extension WatchSessionService: NearbyWatch {
+    func receivedNearbyInvitation(data: Data, replyHandler: @escaping ([String : Any]) -> Void) {
+        nearbyService.addDeviceToSession(data: data)
+        receiveMessages.send(nearbyService.decryptDiscoveryToken(data)?.description ?? "Cant decrypt token")
+
+        // send back
+        guard let encryptedToken = nearbyService.discoveryTokenEncrypted else { return }
+        replyHandler(["NearbySessionResponse": encryptedToken])
+    }
+}
+#endif

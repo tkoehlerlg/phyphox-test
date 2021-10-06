@@ -29,7 +29,6 @@ struct ContentView: View {
                         Text("Send Message")
                     }
                 }
-                #if !targetEnvironment(simulator)
                 Spacer()
                     .frame(height: 50)
                 Group {
@@ -55,7 +54,6 @@ struct ContentView: View {
                         Text("Start Session")
                     }
                 }
-                #endif
             }
             Color(model.appleWatchIsConnected ? .green : .red)
                 .ignoresSafeArea()

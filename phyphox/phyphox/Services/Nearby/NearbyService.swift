@@ -8,7 +8,7 @@
 import Combine
 import NearbyInteraction
 
-class NearbyService: NSObject, ObservableObject {
+final class NearbyService: NSObject, ObservableObject {
     private var nearbySession: NISession?
     static var nearbySessionsAvailable: Bool {
         return NISession.isSupported
@@ -19,7 +19,7 @@ class NearbyService: NSObject, ObservableObject {
         guard let discoveryToken = nearbySession?.discoveryToken else { return nil }
         return encryptDiscoveryToken(discoveryToken)
     }
-    var currentSessions: [
+    private(set) var currentSessions: [
         Data: PassthroughSubject<NINearbyObject, Errors>
     ] = [:]
     private var cancellable = Set<AnyCancellable>()
@@ -34,15 +34,25 @@ class NearbyService: NSObject, ObservableObject {
         super.init()
         self.startNearbySession()
     }
+    deinit {
+        stopNearbySession()
+    }
     func startNearbySession() {
+        print(NISession.isSupported)
         guard NISession.isSupported else {
             print("This device doesn't support Nearby Interaction.")
             return
         }
         self.nearbySession = NISession()
         nearbySession?.delegate = self
+        nearbySession?.delegateQueue = DispatchQueue.main
+    }
+    func stopNearbySession() {
+        nearbySession?.invalidate()
+        nearbySession = nil
     }
 
+    // MARK: Add Device
     func addDeviceToSession(
         data: Data,
         with passthroughSubject: PassthroughSubject<NINearbyObject, Errors> = .init()

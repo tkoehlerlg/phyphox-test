@@ -9,18 +9,11 @@ import Foundation
 
 extension Services {
     init() {
-        #if !targetEnvironment(simulator)
         let nearbyService = NearbyService()
         self.init(
-            watchSession: WCService(nearbyService: nearbyService),
+            watchSession: WatchSessionService(nearbyService: nearbyService),
             sensorsService: SensorsService(),
             nearbyService: nearbyService
         )
-        #else
-        self.init(
-            watchSession: WCService(),
-            sensorsService: SensorsService()
-        )
-        #endif
     }
 }
