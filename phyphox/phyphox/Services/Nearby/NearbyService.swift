@@ -20,24 +20,19 @@ final class NearbyService: NSObject, ObservableObject {
         guard let discoveryToken = nearbySession?.discoveryToken else { return nil }
         return encryptDiscoveryToken(discoveryToken)
     }
-    private(set) var currentSessions: [
-        Data: PassthroughSubject<NINearbyObject, Errors>
-    ] = [:]
+    private(set) var currentNearbyObjects: [NearbyObject] = []
     private var cancellable = Set<AnyCancellable>()
-
-    // MARK: Errors
-    enum Errors: String, Error {
-        case noDiscoveryToken, objectCantBeFoundLonger, sessionClosed, tokenCanNotEncrypted
-    }
 
     // MARK: Session start
     override init() {
         super.init()
         self.startNearbySession()
     }
+
     deinit {
         stopNearbySession()
     }
+
     func startNearbySession() {
         print(NISession.isSupported)
         guard NISession.isSupported else {
@@ -48,6 +43,7 @@ final class NearbyService: NSObject, ObservableObject {
         nearbySession?.delegate = self
         nearbySession?.delegateQueue = DispatchQueue.main
     }
+
     func stopNearbySession() {
         nearbySession?.invalidate()
         nearbySession = nil
@@ -55,23 +51,29 @@ final class NearbyService: NSObject, ObservableObject {
 
     // MARK: Add Device
     func addDeviceToSession(
-        data: Data,
-        with passthroughSubject: PassthroughSubject<NINearbyObject, Errors> = .init()
+        identifier: String,
+        data encrypetedToken: Data,
+        with passthroughSubject: PassthroughSubject<NINearbyObject, NearbyObjectError> = .init()
     ) {
-        guard let discoveryToken = decryptDiscoveryToken(data) else { return }
-        let config = NINearbyPeerConfiguration(peerToken: discoveryToken)
-        self.nearbySession?.run(config)
-        currentSessions[data] = passthroughSubject
+        if !currentNearbyObjects.contains(where: { $0.encryptedToken == encrypetedToken }) {
+            guard let discoveryToken = decryptDiscoveryToken(encrypetedToken) else { return }
+            let config = NINearbyPeerConfiguration(peerToken: discoveryToken)
+            self.nearbySession?.run(config)
+            currentNearbyObjects.append(
+                NearbyObject(
+                    identifier: identifier,
+                    encryptedToken: encrypetedToken,
+                    updateHandler: passthroughSubject
+                )
+            )
+        }
     }
-
     private func addDeviceToSessionWithResponse(
-        data: Data,
-        with passthroughSubject: PassthroughSubject<NINearbyObject, Errors> = .init()
-    ) -> PassthroughSubject<NINearbyObject, Errors>? {
-        guard let discoveryToken = decryptDiscoveryToken(data) else { return nil }
-        let config = NINearbyPeerConfiguration(peerToken: discoveryToken)
-        self.nearbySession?.run(config)
-        currentSessions[data] = passthroughSubject
+        identifier: String,
+        data encrypetedToken: Data,
+        with passthroughSubject: PassthroughSubject<NINearbyObject, NearbyObjectError> = .init()
+    ) -> PassthroughSubject<NINearbyObject, NearbyObjectError>? {
+        addDeviceToSession(identifier: identifier, data: encrypetedToken, with: passthroughSubject)
         return passthroughSubject
     }
 }
@@ -80,11 +82,13 @@ final class NearbyService: NSObject, ObservableObject {
 extension NearbyService: NISessionDelegate {
     // updates the distance and direction
     func session(_ session: NISession, didUpdate nearbyObjects: [NINearbyObject]) {
-        print("update from \(UIDevice.current.name), Distance:")
         nearbyObjects.forEach { object in
-            print(object.distance)
             guard let encryptedDiscoveryToken = encryptDiscoveryToken(object.discoveryToken) else { return }
-            currentSessions[encryptedDiscoveryToken]?.send(object)
+            currentNearbyObjects.forEach({
+                if $0.encryptedToken == encryptedDiscoveryToken {
+                    $0.updateHandler.send(object)
+                }
+            })
         }
     }
 
@@ -95,8 +99,12 @@ extension NearbyService: NISessionDelegate {
     func session(_ session: NISession, didRemove nearbyObjects: [NINearbyObject], reason: NINearbyObject.RemovalReason) {
         nearbyObjects.forEach { object in
             guard let encryptedDiscoveryToken = encryptDiscoveryToken(object.discoveryToken) else { return }
-            currentSessions[encryptedDiscoveryToken]?.send(completion: .failure(.sessionClosed))
-            currentSessions.removeValue(forKey: encryptedDiscoveryToken)
+            currentNearbyObjects.forEach({
+                if $0.encryptedToken == encryptedDiscoveryToken {
+                    $0.updateHandler.send(completion: .failure(.sessionClosed))
+                }
+            })
+            currentNearbyObjects.removeAll(where: { $0.encryptedToken == encryptedDiscoveryToken })
         }
 
         if nearbyObjects.isEmpty {
@@ -106,8 +114,8 @@ extension NearbyService: NISessionDelegate {
     }
 
     func sessionSuspensionEnded(_ session: NISession) {
-        currentSessions.forEach { session in
-            guard let decryptedDiscoveryToken = decryptDiscoveryToken(session.key) else { return }
+        currentNearbyObjects.forEach {
+            guard let decryptedDiscoveryToken = decryptDiscoveryToken($0.encryptedToken) else { return }
             let config = NINearbyPeerConfiguration(peerToken: decryptedDiscoveryToken)
             self.nearbySession?.run(config)
         }

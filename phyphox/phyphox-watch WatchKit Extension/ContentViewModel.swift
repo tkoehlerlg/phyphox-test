@@ -34,7 +34,7 @@ class ContentViewModel: ObservableObject {
     }
 
     func startMonitor() {
-        services.nearbyService.currentSessions.first?.value
+        services.nearbyService.currentNearbyObjects.first?.updateHandler
             .receive(on: DispatchQueue.main)
             .sink(receiveCompletion: { response in
                 switch response {

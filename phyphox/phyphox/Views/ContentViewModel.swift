@@ -25,50 +25,7 @@ class ContentViewModel: ObservableObject {
         services.watchSession.$watchIsConnected.assign(to: &$appleWatchIsConnected)
     }
 
-    @Published var test1Message: String?
-    func launchTest1() {
-        services.watchSession.sendMessageWithResponse(["Test1" : "Some Message"])
-            .receive(on: DispatchQueue.main)
-            .sink { response in
-                switch response {
-                case .finished:
-                    print("Test 1 - respondet")
-                case let .failure(error):
-                    print(error)
-                }
-            } receiveValue: { [weak self] response in
-                self?.test1Message = response["Test1"] as? String
-            }
-            .store(in: &cancellable)
-    }
-
-    @Published var test2Message: String?
-    func launchTest2() {
-        guard let tokenEncryped = services.nearbyService.discoveryTokenEncrypted else {
-            print("Encryption error in test")
-            return
-        }
-        services.watchSession.sendMessageWithResponse(
-            ["NearbySessionInvitation-Test" : tokenEncryped]
-        )
-            .receive(on: DispatchQueue.main)
-            .sink { response in
-                switch response {
-                case .finished:
-                    print("Test 2 - respondet")
-                case let .failure(error):
-                    print(error)
-                }
-            } receiveValue: { [weak self] response in
-                self?.test2Message = "Response: Data..."
-                if let data = response["NearbySessionResponse"] as? Data {
-                    self?.test2Message = "Response: \((self?.services.nearbyService.decryptDiscoveryToken(data)?.description) ?? "Cant Decrypeted")"
-                }
-            }
-            .store(in: &cancellable)
-    }
-
-    func connect() {
+    func connectToWatch() {
         guard let handler = services.watchSession.startNearbyInteractionSessionWithWatch() else { return }
         handler
             .receive(on: DispatchQueue.main)

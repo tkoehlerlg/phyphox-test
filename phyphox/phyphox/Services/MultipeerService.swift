@@ -8,7 +8,7 @@
 //import UIKit
 //import MultipeerConnectivity
 //
-//class MultipeerService: NSObject {
+//final class MultipeerService: NSObject {
 //    // MARK: Own Data
 //    private let myPeerID = MCPeerID(displayName: UIDevice.current.name)
 //    var connectedPeers: [MCPeerID] = []

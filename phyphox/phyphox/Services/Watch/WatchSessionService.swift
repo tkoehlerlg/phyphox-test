@@ -9,7 +9,7 @@ import Combine
 import WatchConnectivity
 import NearbyInteraction
 
-class WatchSessionService: NSObject, ObservableObject {
+final class WatchSessionService: NSObject, ObservableObject {
     private let session: WCSession
     internal let nearbyService: NearbyService
     var isSupported: Bool {
@@ -46,8 +46,8 @@ class WatchSessionService: NSObject, ObservableObject {
 
     #if os(iOS)
     // MARK: NearbyInteraction
-    func startNearbyInteractionSessionWithWatch() -> PassthroughSubject<NINearbyObject, NearbyService.Errors>? {
-        let passthroughSubject = PassthroughSubject<NINearbyObject, NearbyService.Errors>()
+    func startNearbyInteractionSessionWithWatch() -> PassthroughSubject<NINearbyObject, NearbyObjectError>? {
+        let passthroughSubject = PassthroughSubject<NINearbyObject, NearbyObjectError>()
         guard let discoveryTokenEncrypted = nearbyService.discoveryTokenEncrypted else { return nil }
         self.sendMessageWithResponse(["NearbySessionInvitation" : discoveryTokenEncrypted])
             .receive(on: DispatchQueue.main)
@@ -60,12 +60,27 @@ class WatchSessionService: NSObject, ObservableObject {
                 }
             } receiveValue: { [weak self] response in
                 guard let encryptedToken = response["NearbySessionResponse"] as? Data else { return }
-                self?.nearbyService.addDeviceToSession(data: encryptedToken, with: passthroughSubject)
+                self?.nearbyService.addDeviceToSession(identifier: "My Watch", data: encryptedToken, with: passthroughSubject)
             }
             .store(in: &self.cancellable)
         return passthroughSubject
     }
     #endif
+
+    // MARK: FeatureRequest
+    func requestFeatureOnCounterpart(_ feature: WCFeatureRequest) -> PassthroughSubject<Bool, Error> {
+        let passthroughSubject: PassthroughSubject<Bool, Error> = .init()
+        sendMessageWithResponse(["FeatureRequest" : feature])
+            .receive(on: DispatchQueue.main)
+            .sink { response in
+                passthroughSubject.send(completion: response)
+            } receiveValue: { response in
+                guard let featureReply = response["FeatureReply"] as? Bool else { return }
+                passthroughSubject.send(featureReply)
+            }
+            .store(in: &cancellable)
+        return passthroughSubject
+    }
 }
 
 extension WatchSessionService: WCSessionDelegate {
@@ -81,24 +96,18 @@ extension WatchSessionService: WCSessionDelegate {
         #if os(watchOS)
         // Reply to NearbySession
         if let discoveryToken = message["NearbySessionInvitation"] as? Data {
-            receivedNearbyInvitation(data: discoveryToken, replyHandler: replyHandler)
-        }
-        // Test Session
-        if (message["NearbySessionInvitation-Test"] as? Data) != nil {
-            receiveMessages.send("Test Session")
-
-            // send back
-            guard let encryptedToken = nearbyService.discoveryTokenEncrypted else { return }
-            replyHandler(["NearbySessionResponse": encryptedToken])
-        }
-        // Test 1
-        if message["Test1"] != nil {
-            receiveMessages.send("Test 1")
-            replyHandler(["Test1" : "Some watch-message"])
+            receivedNearbyWCInvitation(data: discoveryToken, replyHandler: replyHandler)
         }
         #elseif os(iOS)
         // ios responsesd
         #endif
+        //both
+        if let request = message["FeatureRequest"] as? WCFeatureRequest {
+            switch request {
+            case .nearbySession:
+                replyHandler(["FeatureReply": NISession.isSupported])
+            }
+        }
     }
 
     func session(_ session: WCSession, didReceiveApplicationContext applicationContext: [String : Any]) {
@@ -121,9 +130,9 @@ extension WatchSessionService: WCSessionDelegate {
 #if os(watchOS)
 // MARK: Nearby Service
 extension WatchSessionService: NearbyWatch {
-    func receivedNearbyInvitation(data: Data, replyHandler: @escaping ([String : Any]) -> Void) {
+    func receivedNearbyWCInvitation(data: Data, replyHandler: @escaping ([String : Any]) -> Void) {
         print("connect to watch")
-        nearbyService.addDeviceToSession(data: data)
+        nearbyService.addDeviceToSession(identifier: "My iPhone", data: data)
         receiveMessages.send(nearbyService.decryptDiscoveryToken(data)?.description ?? "Cant decrypt token")
 
         // send back
