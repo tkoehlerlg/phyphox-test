@@ -224,9 +224,9 @@
 			isa = PBXGroup;
 			children = (
 				D971724A26F26CC60019729E /* ContentView.swift */,
+				D971727326F26CDC0019729E /* ContentViewModel.swift */,
 				D950372A270F1583001B5483 /* DeviceRow.swift */,
 				D950372C270F1663001B5483 /* DeviceRowModel.swift */,
-				D971727326F26CDC0019729E /* ContentViewModel.swift */,
 				D9EBF89E2701D04F00E5CB7E /* Extensions */,
 			);
 			path = Views;
