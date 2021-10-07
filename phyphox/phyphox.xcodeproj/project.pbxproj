@@ -317,6 +317,16 @@
 			path = phyphoxUITests;
 			sourceTree = "<group>";
 		};
+		D9BB057A270EE99700FB8DDC /* Apple stuff */ = {
+			isa = PBXGroup;
+			children = (
+				D9EBF8692701CF1200E5CB7E /* NotificationController.swift */,
+				D9EBF86B2701CF1200E5CB7E /* NotificationView.swift */,
+				D9EBF86D2701CF1200E5CB7E /* ComplicationController.swift */,
+			);
+			path = "Apple stuff";
+			sourceTree = "<group>";
+		};
 		D9EBF8592701CF1100E5CB7E /* phyphox-watch */ = {
 			isa = PBXGroup;
 			children = (
@@ -331,9 +341,7 @@
 				D9EBF8652701CF1200E5CB7E /* phyphoxApp.swift */,
 				D9EBF8672701CF1200E5CB7E /* ContentView.swift */,
 				D980D30727030CC1004AC5D0 /* ContentViewModel.swift */,
-				D9EBF8692701CF1200E5CB7E /* NotificationController.swift */,
-				D9EBF86B2701CF1200E5CB7E /* NotificationView.swift */,
-				D9EBF86D2701CF1200E5CB7E /* ComplicationController.swift */,
+				D9BB057A270EE99700FB8DDC /* Apple stuff */,
 				D9EBF86F2701CF1200E5CB7E /* Assets.xcassets */,
 				D9EBF8742701CF1200E5CB7E /* Info.plist */,
 				D9EBF8752701CF1200E5CB7E /* PushNotificationPayload.apns */,

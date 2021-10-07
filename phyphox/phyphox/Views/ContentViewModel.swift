@@ -44,7 +44,6 @@ class ContentViewModel: ObservableObject {
 
     @Published var test2Message: String?
     func launchTest2() {
-        #if !targetEnvironment(simulator)
         guard let tokenEncryped = services.nearbyService.discoveryTokenEncrypted else {
             print("Encryption error in test")
             return
@@ -67,12 +66,9 @@ class ContentViewModel: ObservableObject {
                 }
             }
             .store(in: &cancellable)
-        #endif
     }
 
     func connect() {
-//        services.nearbyService.startNearbySession()
-        #if !targetEnvironment(simulator)
         guard let handler = services.watchSession.startNearbyInteractionSessionWithWatch() else { return }
         handler
             .receive(on: DispatchQueue.main)
@@ -93,6 +89,5 @@ class ContentViewModel: ObservableObject {
                 )
             }
             .store(in: &cancellable)
-        #endif
     }
 }

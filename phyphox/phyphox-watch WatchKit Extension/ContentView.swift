@@ -21,7 +21,15 @@ struct ContentView: View {
             Color(model.appleWatchIsConnected ? .green : .red)
                 .opacity(0.5)
                 .ignoresSafeArea()
-            Text(model.label)
+            VStack {
+                Text(model.label)
+                Button {
+                    model.startMonitor()
+                } label: {
+                    Text("Start Monitor")
+                }
+
+            }
         }
     }
 }

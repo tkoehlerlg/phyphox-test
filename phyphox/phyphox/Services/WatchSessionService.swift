@@ -77,6 +77,7 @@ extension WatchSessionService: WCSessionDelegate {
     // MARK: Responses
     // - NearbyInteraction
     func session(_ session: WCSession, didReceiveMessage message: [String : Any], replyHandler: @escaping ([String : Any]) -> Void) {
+        print("Received Message: \(message)")
         #if os(watchOS)
         // Reply to NearbySession
         if let discoveryToken = message["NearbySessionInvitation"] as? Data {
@@ -121,6 +122,7 @@ extension WatchSessionService: WCSessionDelegate {
 // MARK: Nearby Service
 extension WatchSessionService: NearbyWatch {
     func receivedNearbyInvitation(data: Data, replyHandler: @escaping ([String : Any]) -> Void) {
+        print("connect to watch")
         nearbyService.addDeviceToSession(data: data)
         receiveMessages.send(nearbyService.decryptDiscoveryToken(data)?.description ?? "Cant decrypt token")
 
