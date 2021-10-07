@@ -6,29 +6,61 @@
 //
 
 import Foundation
+import Combine
 
 class DeviceRowModel: ObservableObject {
-    @Published private(set) var deviceName: String
-    @Published private(set) var distance: String
-    @Published private(set) var connectionState: ConnectionState
+    let services: Services
+    let deviceName: String
+    @Published private(set) var distance: String?
+    @Published private(set) var connectionState: ConnectionState = .listed
+    let device: Device
 
     enum ConnectionState {
-        case connected, depending, error
+        case connected, depending, error, listed
+    }
+    enum Device {
+        case watch, phone
     }
 
-    init(nearbyObject: NearbyObject) {
-        nearbyObject.updateHandler
+    private var cancellable = Set<AnyCancellable>()
+
+    init(
+        deviceName: String,
+        services: Services,
+        device: Device
+    ) {
+        self.services = services
+        self.deviceName = deviceName
+        self.device = device
+    }
+
+    func startConnection() {
+        self.connectionState = .depending
+        switch device {
+        case .watch:
+            connectToWatch()
+        case .phone:
+            break
+        }
+    }
+
+    private func connectToWatch() {
+        guard let handler = services.watchSession.startNearbyInteractionSessionWithWatch() else {
+            self.connectionState = .error
+            return
+        }
+        handler
             .receive(on: DispatchQueue.main)
-            .sink { response in
-                switch response { [weak self] in
+            .sink {  [weak self] response in
+                switch response {
                 case .finished: break
                 case .failure:
-                    self.connectionState = .error
+                    self?.connectionState = .error
                 }
-            } receiveValue: { response in
-                <#code#>
+            } receiveValue: { [weak self] response in
+                self?.connectionState = .connected
+                self?.distance = response.distanceString
             }
-            .store(in: &<#T##Set<AnyCancellable>#>)
-
+            .store(in: &cancellable)
     }
 }
