@@ -9,38 +9,43 @@ import SwiftUI
 import Combine
 
 class ContentViewModel: ObservableObject {
-    @Published private(set) var accelerometerService: AccelerometerSS
-    @Published private(set) var watchServices: WCService
-
-    var currentXData: Double { xDataArray.last ?? 0.0 }
-    @Published var xDataArray: [Double] = []
-
+    private let services: Services
     var cancellable = Set<AnyCancellable>()
 
-    @Published var label: String = "Nothing"
-    var lastTimeStamp: Date?
+    @Published var appleWatchIsConnected: Bool
+    @Published var label: String = ""
 
     init(services: Services) {
-        self.accelerometerService = services.sensorsService.accelerometer
-        self.watchServices = services.watchSession
-        self.accelerometerService.startRecording()
-
-        self.accelerometerService.$currentAcceleration
+        self.services = services
+        appleWatchIsConnected = services.watchSession.watchIsConnected
+        services.watchSession.$watchIsConnected
             .receive(on: DispatchQueue.main)
             .sink { [weak self] response in
-                guard let acceleration = response?.acceleration else { return }
-                self?.xDataArray.append(acceleration.x)
-                self?.watchServices.sendMessage([
-                    "x": acceleration.x,
-                    "y": acceleration.y,
-                    "z": acceleration.z
-                ])
-                if let lastTimeStamp = self?.lastTimeStamp {
-                    let diffComponents = Calendar.current.dateComponents([.second], from: lastTimeStamp, to: Date())
-                    self?.label = "\(diffComponents.second ?? 0)"
-                }
-                self?.lastTimeStamp = response?.timestamp
+                self?.appleWatchIsConnected = response
             }
+            .store(in: &cancellable)
+
+        services.watchSession.receiveMessages
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] message in
+                self?.label = message
+            }
+            .store(in: &cancellable)
+    }
+
+    func startMonitor() {
+        services.nearbyService.currentSessions.first?.value
+            .receive(on: DispatchQueue.main)
+            .sink(receiveCompletion: { response in
+                switch response {
+                case .finished:
+                    print("iPhone connected")
+                case let .failure(error):
+                    print("connection error: \(error)")
+                }
+            }, receiveValue: { [weak self] response in
+                self?.label = "Distance: \(String(format: "%.3f", response.distance ?? 0))m"
+            })
             .store(in: &cancellable)
     }
 }

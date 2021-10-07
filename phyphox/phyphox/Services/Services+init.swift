@@ -11,7 +11,7 @@ extension Services {
     init() {
         let nearbyService = NearbyService()
         self.init(
-            watchSession: WCService(nearbyService: nearbyService),
+            watchSession: WatchSessionService(nearbyService: nearbyService),
             sensorsService: SensorsService(),
             nearbyService: nearbyService
         )

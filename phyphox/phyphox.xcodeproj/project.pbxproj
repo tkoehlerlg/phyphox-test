@@ -19,6 +19,8 @@
 		D91B18E2270209FE00CDB865 /* WatchSessionService.swift in Sources */ = {isa = PBXBuildFile; fileRef = D91B18D1270203AA00CDB865 /* WatchSessionService.swift */; };
 		D91B18E3270209FE00CDB865 /* SensorsService.swift in Sources */ = {isa = PBXBuildFile; fileRef = D91B18D52702067E00CDB865 /* SensorsService.swift */; };
 		D91B18E427020A1200CDB865 /* AppModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D91B18D9270207FB00CDB865 /* AppModel.swift */; };
+		D95B430C270D8EAC00232CDE /* MultipeerService.swift in Sources */ = {isa = PBXBuildFile; fileRef = D95B430B270D8EAC00232CDE /* MultipeerService.swift */; };
+		D95B4311270D965B00232CDE /* Nearby+Watch.swift in Sources */ = {isa = PBXBuildFile; fileRef = D95B430E270D94B900232CDE /* Nearby+Watch.swift */; };
 		D9703AA427044C48001B631F /* NearbyService.swift in Sources */ = {isa = PBXBuildFile; fileRef = D9703AA327044C48001B631F /* NearbyService.swift */; };
 		D971724926F26CC60019729E /* phyphoxApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = D971724826F26CC60019729E /* phyphoxApp.swift */; };
 		D971724B26F26CC60019729E /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D971724A26F26CC60019729E /* ContentView.swift */; };
@@ -28,7 +30,6 @@
 		D971726626F26CC80019729E /* phyphoxUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D971726526F26CC80019729E /* phyphoxUITests.swift */; };
 		D971727426F26CDC0019729E /* ContentViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D971727326F26CDC0019729E /* ContentViewModel.swift */; };
 		D980D30827030CC1004AC5D0 /* ContentViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D980D30727030CC1004AC5D0 /* ContentViewModel.swift */; };
-		D9897A772707064600D0266D /* DeviceConnectService.swift in Sources */ = {isa = PBXBuildFile; fileRef = D9897A762707064600D0266D /* DeviceConnectService.swift */; };
 		D9897A782707132E00D0266D /* NearbyService.swift in Sources */ = {isa = PBXBuildFile; fileRef = D9703AA327044C48001B631F /* NearbyService.swift */; };
 		D9EBF85B2701CF1200E5CB7E /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = D9EBF85A2701CF1200E5CB7E /* Assets.xcassets */; };
 		D9EBF8612701CF1200E5CB7E /* phyphox-watch WatchKit Extension.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = D9EBF8602701CF1200E5CB7E /* phyphox-watch WatchKit Extension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
@@ -124,6 +125,8 @@
 		D91B18D9270207FB00CDB865 /* AppModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppModel.swift; sourceTree = "<group>"; };
 		D91B18DB2702083100CDB865 /* Services.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Services.swift; sourceTree = "<group>"; };
 		D91B18DD2702083800CDB865 /* Services+init.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Services+init.swift"; sourceTree = "<group>"; };
+		D95B430B270D8EAC00232CDE /* MultipeerService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MultipeerService.swift; sourceTree = "<group>"; };
+		D95B430E270D94B900232CDE /* Nearby+Watch.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Nearby+Watch.swift"; sourceTree = "<group>"; };
 		D9703AA327044C48001B631F /* NearbyService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NearbyService.swift; sourceTree = "<group>"; };
 		D971724526F26CC60019729E /* phyphox.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = phyphox.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		D971724826F26CC60019729E /* phyphoxApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = phyphoxApp.swift; sourceTree = "<group>"; };
@@ -139,7 +142,6 @@
 		D971726726F26CC80019729E /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		D971727326F26CDC0019729E /* ContentViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentViewModel.swift; sourceTree = "<group>"; };
 		D980D30727030CC1004AC5D0 /* ContentViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentViewModel.swift; sourceTree = "<group>"; };
-		D9897A762707064600D0266D /* DeviceConnectService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeviceConnectService.swift; sourceTree = "<group>"; };
 		D9EBF8582701CF1100E5CB7E /* phyphox-watch.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "phyphox-watch.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		D9EBF85A2701CF1200E5CB7E /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		D9EBF8602701CF1200E5CB7E /* phyphox-watch WatchKit Extension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = "phyphox-watch WatchKit Extension.appex"; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -221,8 +223,9 @@
 			children = (
 				D91B18DB2702083100CDB865 /* Services.swift */,
 				D91B18DD2702083800CDB865 /* Services+init.swift */,
-				D9703AA227044C20001B631F /* Nearby */,
-				D91B18D42702066200CDB865 /* WatchSession */,
+				D95B4310270D963E00232CDE /* Nearby */,
+				D91B18D1270203AA00CDB865 /* WatchSessionService.swift */,
+				D95B430B270D8EAC00232CDE /* MultipeerService.swift */,
 				D91B18D32702065700CDB865 /* Sensors */,
 			);
 			path = Services;
@@ -237,19 +240,11 @@
 			path = Sensors;
 			sourceTree = "<group>";
 		};
-		D91B18D42702066200CDB865 /* WatchSession */ = {
-			isa = PBXGroup;
-			children = (
-				D91B18D1270203AA00CDB865 /* WatchSessionService.swift */,
-			);
-			path = WatchSession;
-			sourceTree = "<group>";
-		};
-		D9703AA227044C20001B631F /* Nearby */ = {
+		D95B4310270D963E00232CDE /* Nearby */ = {
 			isa = PBXGroup;
 			children = (
 				D9703AA327044C48001B631F /* NearbyService.swift */,
-				D9897A762707064600D0266D /* DeviceConnectService.swift */,
+				D95B430E270D94B900232CDE /* Nearby+Watch.swift */,
 			);
 			path = Nearby;
 			sourceTree = "<group>";
@@ -322,6 +317,16 @@
 			path = phyphoxUITests;
 			sourceTree = "<group>";
 		};
+		D9BB057A270EE99700FB8DDC /* Apple stuff */ = {
+			isa = PBXGroup;
+			children = (
+				D9EBF8692701CF1200E5CB7E /* NotificationController.swift */,
+				D9EBF86B2701CF1200E5CB7E /* NotificationView.swift */,
+				D9EBF86D2701CF1200E5CB7E /* ComplicationController.swift */,
+			);
+			path = "Apple stuff";
+			sourceTree = "<group>";
+		};
 		D9EBF8592701CF1100E5CB7E /* phyphox-watch */ = {
 			isa = PBXGroup;
 			children = (
@@ -336,9 +341,7 @@
 				D9EBF8652701CF1200E5CB7E /* phyphoxApp.swift */,
 				D9EBF8672701CF1200E5CB7E /* ContentView.swift */,
 				D980D30727030CC1004AC5D0 /* ContentViewModel.swift */,
-				D9EBF8692701CF1200E5CB7E /* NotificationController.swift */,
-				D9EBF86B2701CF1200E5CB7E /* NotificationView.swift */,
-				D9EBF86D2701CF1200E5CB7E /* ComplicationController.swift */,
+				D9BB057A270EE99700FB8DDC /* Apple stuff */,
 				D9EBF86F2701CF1200E5CB7E /* Assets.xcassets */,
 				D9EBF8742701CF1200E5CB7E /* Info.plist */,
 				D9EBF8752701CF1200E5CB7E /* PushNotificationPayload.apns */,
@@ -634,8 +637,8 @@
 				D91B18D62702067E00CDB865 /* SensorsService.swift in Sources */,
 				D971724B26F26CC60019729E /* ContentView.swift in Sources */,
 				D91B18DA270207FB00CDB865 /* AppModel.swift in Sources */,
-				D9897A772707064600D0266D /* DeviceConnectService.swift in Sources */,
 				D9EBF8A02701D05C00E5CB7E /* Path+Graph.swift in Sources */,
+				D95B430C270D8EAC00232CDE /* MultipeerService.swift in Sources */,
 				D971724926F26CC60019729E /* phyphoxApp.swift in Sources */,
 				D971727426F26CDC0019729E /* ContentViewModel.swift in Sources */,
 				D91B18DE2702083800CDB865 /* Services+init.swift in Sources */,
@@ -665,6 +668,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D95B4311270D965B00232CDE /* Nearby+Watch.swift in Sources */,
 				D9897A782707132E00D0266D /* NearbyService.swift in Sources */,
 				D91B18E2270209FE00CDB865 /* WatchSessionService.swift in Sources */,
 				D9EBF86A2701CF1200E5CB7E /* NotificationController.swift in Sources */,

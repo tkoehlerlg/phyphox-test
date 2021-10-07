@@ -6,113 +6,126 @@
 //
 
 import Combine
+import UIKit
 import NearbyInteraction
 
-class NearbyService: NSObject, ObservableObject {
-    private var session: NISession
-    var isSupported: Bool {
-        NISession.isSupported
+final class NearbyService: NSObject, ObservableObject {
+    private var nearbySession: NISession?
+    static var nearbySessionsAvailable: Bool {
+        return NISession.isSupported
+    }
+
+    // MARK: own Data
+    var discoveryTokenEncrypted: Data? {
+        guard let discoveryToken = nearbySession?.discoveryToken else { return nil }
+        return encryptDiscoveryToken(discoveryToken)
     }
     private(set) var currentSessions: [
-        NIDiscoveryToken: PassthroughSubject<NINearbyObject, Errors>
+        Data: PassthroughSubject<NINearbyObject, Errors>
     ] = [:]
-
-    enum Errors: String, Error {
-        case noDiscoveryToken, objectCantBeFoundLonger, sessionClosed
-    }
-
     private var cancellable = Set<AnyCancellable>()
 
-    override init() {
-        self.session = NISession()
-        super.init()
+    // MARK: Errors
+    enum Errors: String, Error {
+        case noDiscoveryToken, objectCantBeFoundLonger, sessionClosed, tokenCanNotEncrypted
+    }
 
+    // MARK: Session start
+    override init() {
+        super.init()
+        self.startNearbySession()
+    }
+    deinit {
+        stopNearbySession()
+    }
+    func startNearbySession() {
+        print(NISession.isSupported)
         guard NISession.isSupported else {
             print("This device doesn't support Nearby Interaction.")
             return
         }
-        session.delegate = self
+        self.nearbySession = NISession()
+        nearbySession?.delegate = self
+        nearbySession?.delegateQueue = DispatchQueue.main
+    }
+    func stopNearbySession() {
+        nearbySession?.invalidate()
+        nearbySession = nil
     }
 
-    deinit {
-        session.invalidate()
+    // MARK: Add Device
+    func addDeviceToSession(
+        data: Data,
+        with passthroughSubject: PassthroughSubject<NINearbyObject, Errors> = .init()
+    ) {
+        guard let discoveryToken = decryptDiscoveryToken(data) else { return }
+        let config = NINearbyPeerConfiguration(peerToken: discoveryToken)
+        self.nearbySession?.run(config)
+        currentSessions[data] = passthroughSubject
     }
 
-    private func startSession(with token: NIDiscoveryToken) {
-        let config = NINearbyPeerConfiguration(peerToken: token)
-        session.run(config)
-    }
-
-    func acceptSessionInvitation(with token: NIDiscoveryToken) -> PassthroughSubject<NINearbyObject, Errors> {
-        let passthroughSubject: PassthroughSubject<NINearbyObject, Errors> = .init()
-        self.currentSessions[token] = passthroughSubject
-        self.startSession(with: token)
+    private func addDeviceToSessionWithResponse(
+        data: Data,
+        with passthroughSubject: PassthroughSubject<NINearbyObject, Errors> = .init()
+    ) -> PassthroughSubject<NINearbyObject, Errors>? {
+        guard let discoveryToken = decryptDiscoveryToken(data) else { return nil }
+        let config = NINearbyPeerConfiguration(peerToken: discoveryToken)
+        self.nearbySession?.run(config)
+        currentSessions[data] = passthroughSubject
         return passthroughSubject
     }
-
-    #if os(iOS)
-    func startWatchSession(_ sessionService: WCService) -> PassthroughSubject<NINearbyObject, Errors> {
-        let passthroughSubject: PassthroughSubject<NINearbyObject, Errors> = .init()
-        if sessionService.watchIsConnected {
-            if let discoveryToken = session.discoveryToken {
-                sessionService.sendMessageWithResponse(
-                    ["NearbySessionInvitation" : "\(discoveryToken)"]
-                )
-                    .receive(on: DispatchQueue.main)
-                    .sink(receiveCompletion: { response in
-                        switch response {
-                        case .finished:
-                            print("Watch connected")
-                        case let .failure(error):
-                            print("Watch not connected: \(error)")
-                        }
-                    }, receiveValue: { response in
-                        guard
-                            let sessionResponse = response["NearbySessionResponse"],
-                            let token = sessionResponse as? NIDiscoveryToken
-                        else { return }
-                        self.currentSessions[token] = passthroughSubject
-                        self.startSession(with: token)
-                    })
-                    .store(in: &cancellable)
-            } else {
-                DispatchQueue.main.asyncAfter(deadline: .now()+1) {
-                    passthroughSubject.send(completion: .failure(.noDiscoveryToken))
-                }
-            }
-        }
-        return passthroughSubject
-    }
-    #endif
 }
 
+// MARK: Delegate
 extension NearbyService: NISessionDelegate {
     // updates the distance and direction
     func session(_ session: NISession, didUpdate nearbyObjects: [NINearbyObject]) {
+        print("update from \(UIDevice.current.name), Distance:")
         nearbyObjects.forEach { object in
-            self.currentSessions.forEach { session in
-                if object.discoveryToken == session.key {
-                    session.value.send(object)
-                }
-            }
+            print(object.distance)
+            guard let encryptedDiscoveryToken = encryptDiscoveryToken(object.discoveryToken) else { return }
+            currentSessions[encryptedDiscoveryToken]?.send(object)
         }
     }
 
-    // device can't be found longer
+    func session(_ session: NISession, didInvalidateWith error: Error) {
+        self.startNearbySession()
+    }
+
     func session(_ session: NISession, didRemove nearbyObjects: [NINearbyObject], reason: NINearbyObject.RemovalReason) {
         nearbyObjects.forEach { object in
-            self.currentSessions.forEach { session in
-                if object.discoveryToken == session.key {
-                    session.value.send(completion: .failure(.objectCantBeFoundLonger))
-                }
-            }
+            guard let encryptedDiscoveryToken = encryptDiscoveryToken(object.discoveryToken) else { return }
+            currentSessions[encryptedDiscoveryToken]?.send(completion: .failure(.sessionClosed))
+            currentSessions.removeValue(forKey: encryptedDiscoveryToken)
+        }
+
+        if nearbyObjects.isEmpty {
+            session.invalidate()
+            self.startNearbySession()
         }
     }
 
-    // Session closed
-    func sessionWasSuspended(_ session: NISession) {
-        self.currentSessions.forEach { session in
-            session.value.send(completion: .failure(.sessionClosed))
+    func sessionSuspensionEnded(_ session: NISession) {
+        currentSessions.forEach { session in
+            guard let decryptedDiscoveryToken = decryptDiscoveryToken(session.key) else { return }
+            let config = NINearbyPeerConfiguration(peerToken: decryptedDiscoveryToken)
+            self.nearbySession?.run(config)
         }
     }
+
+    func sessionWasSuspended(_ session: NISession) {
+        print("Session stopped")
+    }
 }
+
+// MARK: Key Cription
+extension NearbyService {
+    func encryptDiscoveryToken(_ token: NIDiscoveryToken) -> Data? {
+        return try? NSKeyedArchiver.archivedData(withRootObject: token, requiringSecureCoding: true)
+    }
+
+    func decryptDiscoveryToken(_ data: Data) -> NIDiscoveryToken? {
+        return try? NSKeyedUnarchiver.unarchivedObject(ofClass: NIDiscoveryToken.self, from: data)
+    }
+}
+

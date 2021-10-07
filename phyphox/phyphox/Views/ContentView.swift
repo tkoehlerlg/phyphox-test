@@ -19,8 +19,41 @@ struct ContentView: View {
     var body: some View {
         ZStack {
             VStack {
-                Text("Distance: \(String(format: "%.3f", model.distance))m")
-                Text("Direction: x: \(model.direction.x), y: \(model.direction.y), z: \(model.direction.z)")
+                Group {
+                    Text("Test 1 - Watch Message")
+                        .bold()
+                    Text("\(model.test1Message ?? "(Answer)")")
+                    Button {
+                        model.launchTest1()
+                    } label: {
+                        Text("Send Message")
+                    }
+                }
+                Spacer()
+                    .frame(height: 50)
+                Group {
+                        Text("Test 2 - Session Key")
+                            .bold()
+                        Text("\(model.test2Message ?? "(Answer)")")
+                        Button {
+                            model.launchTest2()
+                        } label: {
+                            Text("Send Message")
+                        }
+                    }
+                    Spacer()
+                        .frame(height: 50)
+                Group {
+                    Text("Test 3 - Session completed")
+                        .bold()
+                    Text("Distance: \(String(format: "%.3f", model.distance))m")
+                    Text("Direction: x: \(model.direction.x), y: \(model.direction.y), z: \(model.direction.z)")
+                    Button {
+                        model.connect()
+                    } label: {
+                        Text("Start Session")
+                    }
+                }
             }
             Color(model.appleWatchIsConnected ? .green : .red)
                 .ignoresSafeArea()
@@ -35,25 +68,3 @@ struct ContentView_Previews: PreviewProvider {
         ContentView(services: Services())
     }
 }
-
-//        VStack {
-//            Text(model.label)
-//            Button {
-//                model.sendMessage("What ever it takes")
-//            } label: {
-//                Text("Start")
-//            }
-//            Color(model.watchServices.watchIsConnected ? .green : .red)
-//                .ignoresSafeArea()
-//                .frame(height: 50)
-//                .ignoresSafeArea()
-//            Line(data: model.xDataArray, frame: .constant(CGRect(x: 0, y: 0, width: 400, height: 200)))
-//            .frame(width: 400, height: 200, alignment: .center)
-//            Text("X: \(model.currentXData)")
-//            Line(data: model.yDataArray, frame: .constant(CGRect(x: 0, y: 0, width: 400, height: 200)))
-//            .frame(width: 400, height: 200, alignment: .center)
-//            Text("Y: \(model.currentYData)")
-//            Line(data: model.zDataArray, frame: .constant(CGRect(x: 0, y: 0, width: 400, height: 200)))
-//            .frame(width: 400, height: 200, alignment: .center)
-//            Text("Z: \(model.currentZData)")
-//        }

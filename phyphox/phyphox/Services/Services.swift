@@ -8,12 +8,12 @@
 import Foundation
 
 struct Services {
-    let watchSession: WCService
+    let watchSession: WatchSessionService
     let sensorsService: SensorsService
     let nearbyService: NearbyService
 
     init(
-        watchSession: WCService,
+        watchSession: WatchSessionService,
         sensorsService: SensorsService,
         nearbyService: NearbyService
     ) {

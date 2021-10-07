@@ -27,6 +27,12 @@
 	</dict>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+	<key>NSNearbyInteractionUsageDescription</key>
+	<string>Hey Jens mach das mal bitte an :)</string>
+	<key>NSNearbyInteractionAllowOnceUsageDescription</key>
+	<string>This app demonstrates the NearbyInteraction framework. Supply a value for this string to explain how the user benefits when they allow the app to use NearbyInteraction.</string>
+	<key>UIApplicationSupportsIndirectInputEvents - 2</key>
+	<true/>
 	<key>UILaunchScreen</key>
 	<dict/>
 	<key>UIRequiredDeviceCapabilities</key>

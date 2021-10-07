@@ -16,9 +16,9 @@ class SensorsService: ObservableObject {
         manager = CMMotionManager()
         accelerometer = AccelerometerSS(manager: manager)
         if manager.isDeviceMotionAvailable {
-            print(manager.isGyroAvailable)
-            print(manager.isMagnetometerAvailable)
-            print(manager.isAccelerometerAvailable)
+//            print(manager.isGyroAvailable)
+//            print(manager.isMagnetometerAvailable)
+//            print(manager.isAccelerometerAvailable)
         }
     }
 }
