@@ -6,6 +6,7 @@
 //
 
 import Combine
+import UIKit
 import NearbyInteraction
 
 final class NearbyService: NSObject, ObservableObject {
@@ -79,8 +80,9 @@ final class NearbyService: NSObject, ObservableObject {
 extension NearbyService: NISessionDelegate {
     // updates the distance and direction
     func session(_ session: NISession, didUpdate nearbyObjects: [NINearbyObject]) {
-        print("update")
+        print("update from \(UIDevice.current.name), Distance:")
         nearbyObjects.forEach { object in
+            print(object.distance)
             guard let encryptedDiscoveryToken = encryptDiscoveryToken(object.discoveryToken) else { return }
             currentSessions[encryptedDiscoveryToken]?.send(object)
         }
