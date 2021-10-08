@@ -101,6 +101,7 @@ extension NearbyService: NISessionDelegate {
 
     func session(_ session: NISession, didRemove nearbyObjects: [NINearbyObject], reason: NINearbyObject.RemovalReason) {
         nearbyObjects.forEach { object in
+            print("update \(object.distance)")
             guard let encryptedDiscoveryToken = encryptDiscoveryToken(object.discoveryToken) else { return }
             currentNearbyObjects.forEach({
                 if $0.encryptedToken == encryptedDiscoveryToken {
