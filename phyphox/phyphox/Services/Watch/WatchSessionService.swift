@@ -28,6 +28,7 @@ final class WatchSessionService: NSObject, ObservableObject {
     }
 
     func sendMessageWithResponse(_ message: [String: Any]) -> AnyPublisher<[String: Any], Error> {
+        print(message)
         let passtroughtSubject: PassthroughSubject<[String: Any], Error> = .init()
         session.sendMessage(message) { reply in
             passtroughtSubject.send(reply)
@@ -83,7 +84,9 @@ final class WatchSessionService: NSObject, ObservableObject {
 
 extension WatchSessionService: WCSessionDelegate {
     func session(_ session: WCSession, activationDidCompleteWith activationState: WCSessionActivationState, error: Error?) {
-        connectedToCounterpart = true
+        DispatchQueue.main.async { [weak self] in
+            self?.connectedToCounterpart = true
+        }
         objectWillChange.send()
     }
 
@@ -108,12 +111,16 @@ extension WatchSessionService: WCSessionDelegate {
 
     #if os(iOS)
     func sessionDidBecomeInactive(_ session: WCSession) {
-        connectedToCounterpart = false
+        DispatchQueue.main.async { [weak self] in
+            self?.connectedToCounterpart = false
+        }
         objectWillChange.send()
     }
 
     func sessionDidDeactivate(_ session: WCSession) {
-        connectedToCounterpart = false
+        DispatchQueue.main.async { [weak self] in
+            self?.connectedToCounterpart = false
+        }
         objectWillChange.send()
     }
     #endif
