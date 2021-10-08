@@ -21,5 +21,6 @@ extension WatchSessionService {
         // send token to iPhone
         guard let encryptedToken = nearbyService.discoveryTokenEncrypted else { return }
         replyHandler(["NearbySessionResponse": encryptedToken])
+        print("Hey ich bin da")
     }
 }
