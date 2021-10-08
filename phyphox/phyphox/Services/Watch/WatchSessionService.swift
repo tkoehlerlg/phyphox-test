@@ -91,6 +91,7 @@ extension WatchSessionService: WCSessionDelegate {
     // - ask Watch
     // - Feature Resquests
     func session(_ session: WCSession, didReceiveMessage message: [String : Any], replyHandler: @escaping ([String : Any]) -> Void) {
+        print(message)
         #if os(watchOS)
         // ask watch to reply
         askWatchToReplyToMessage(message, replyHandler: replyHandler)
