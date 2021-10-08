@@ -54,13 +54,17 @@ final class NearbyService: NSObject, ObservableObject {
         data encrypetedToken: Data,
         with passthroughSubject: PassthroughSubject<NINearbyObject, NearbyObjectError> = .init()
     ) {
+        var deviceName = identifier
         if !currentNearbyObjects.contains(where: { $0.encryptedToken == encrypetedToken }) {
+            if !currentNearbyObjects.contains(where: { $0.identifier == identifier }) {
+                deviceName += "_"
+            }
             guard let discoveryToken = decryptDiscoveryToken(encrypetedToken) else { return }
             let config = NINearbyPeerConfiguration(peerToken: discoveryToken)
             self.nearbySession?.run(config)
             currentNearbyObjects.append(
                 NearbyObject(
-                    identifier: identifier,
+                    identifier: deviceName,
                     encryptedToken: encrypetedToken,
                     updateHandler: passthroughSubject
                 )

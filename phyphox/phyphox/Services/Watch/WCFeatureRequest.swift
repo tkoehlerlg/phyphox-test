@@ -1,3 +1,3 @@
 enum WCFeatureRequest: String {
-    case nearbySession
+    case nearbySession, isOnline
 }

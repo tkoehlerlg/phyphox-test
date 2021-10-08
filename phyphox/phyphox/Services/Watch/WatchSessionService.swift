@@ -25,6 +25,23 @@ final class WatchSessionService: NSObject, ObservableObject {
 
         session.delegate = self
         session.activate()
+
+        #if os(watchOS)
+        Timer.scheduledTimer(withTimeInterval: 5, repeats: true) { [weak self] timer in
+            guard let self = self else { return }
+            if self.connectedToCounterpart {
+                self.requestFeatureOnCounterpart(.isOnline)
+                    .receive(on: DispatchQueue.main)
+                    .sink { _ in
+                    } receiveValue: { response in
+                        if response {
+                            timer.invalidate()
+                        }
+                    }
+                    .store(in: &self.cancellable)
+            }
+        }
+        #endif
     }
 
     func sendMessageWithResponse(_ message: [String: Any]) -> AnyPublisher<[String: Any], Error> {
@@ -104,6 +121,10 @@ extension WatchSessionService: WCSessionDelegate {
             switch WCFeatureRequest(rawValue: request) {
             case .nearbySession:
                 replyHandler(["FeatureReply": NISession.isSupported])
+            case .isOnline:
+                connectedToCounterpart = connectedToCounterpart
+                objectWillChange.send()
+                replyHandler(["FeatureReply": connectedToCounterpart])
             case .none: break
             }
         }

@@ -34,7 +34,11 @@ struct ContentView: View {
             if !NearbyService.nearbySessionIsAvailable {
                 return "NearbyInteraction wird nicht unterstüzt."
             } else {
-                return model.distanceToPhoneString ?? "Tippe auf deinen iPhone auf \"Apple Watch\" um eine verbindung herzustellen."
+                if !model.sessionStarted {
+                    return "Tippe auf deinen iPhone auf \"Apple Watch\" um eine verbindung herzustellen."
+                } else {
+                    return "Verbunden mit iPhone"
+                }
             }
         }
     }

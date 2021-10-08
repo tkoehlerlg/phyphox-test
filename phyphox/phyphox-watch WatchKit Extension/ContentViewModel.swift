@@ -13,27 +13,17 @@ class ContentViewModel: ObservableObject {
     var cancellable = Set<AnyCancellable>()
 
     @Published private(set) var iPhoneIsConnected: Bool
-    @Published private(set) var distanceToPhoneString: String?
+    @Published private(set) var sessionStarted: Bool
 
     init(services: Services) {
         self.services = services
         iPhoneIsConnected = services.watchSession.connectedToCounterpart
+        sessionStarted = services.nearbyService.iPhoneConnection != nil
         services.watchSession.$connectedToCounterpart.assign(to: &$iPhoneIsConnected)
-
         services.nearbyService.$iPhoneConnection
             .receive(on: DispatchQueue.main)
             .sink { [weak self] iPhoneConnection in
-                guard let self = self else { return }
-                guard let iPhoneConnection = iPhoneConnection else { return }
-                iPhoneConnection.updateHandler
-                    .receive(on: DispatchQueue.main)
-                    .sink { response in
-                        print(response)
-                    } receiveValue: { response in
-                        self.distanceToPhoneString = response.distanceString
-                    }
-                    .store(in: &self.cancellable)
-
+                self?.sessionStarted = iPhoneConnection != nil
             }
             .store(in: &cancellable)
     }
