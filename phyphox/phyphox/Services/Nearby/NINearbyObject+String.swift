@@ -14,9 +14,9 @@ extension NINearbyObject {
         formatter.unitOptions = .providedUnit
         formatter.numberFormatter.alwaysShowsDecimalSeparator = true
         formatter.numberFormatter.roundingMode = .ceiling
-        formatter.numberFormatter.maximumFractionDigits = 3
+        formatter.numberFormatter.maximumFractionDigits = 1
         formatter.numberFormatter.minimumFractionDigits = 1
 
-        return "\(formatter.string(from: distanceInMeter))m"
+        return "\(formatter.string(from: distanceInMeter.converted(to: .centimeters)))"
     }
 }

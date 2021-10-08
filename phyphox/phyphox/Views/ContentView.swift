@@ -17,24 +17,22 @@ struct ContentView: View {
     }
 
     var body: some View {
-        ZStack {
-            VStack {
-                Group {
-                    Text("Test 3 - Session completed")
-                        .bold()
-                    Text("Distance: \(String(format: "%.3f", model.distance))m")
-                    Text("Direction: x: \(model.direction.x), y: \(model.direction.y), z: \(model.direction.z)")
-                    Button {
-                        model.connectToWatch()
-                    } label: {
-                        Text("Start Session")
+        NavigationView {
+            ZStack {
+                if !model.devices.isEmpty {
+                    ScrollView {
+                        ForEach(model.devices, id: \.deviceName) { device in
+                            DeviceRow(model: device)
+                                .padding(.horizontal)
+                                .padding(.bottom, 5)
+                        }
                     }
+                } else {
+                    ProgressView()
+                        .progressViewStyle(CircularProgressViewStyle())
                 }
             }
-            Color(model.appleWatchIsConnected ? .green : .red)
-                .ignoresSafeArea()
-                .frame(height: 0)
-                .frame(maxHeight: .infinity, alignment: .top)
+            .navigationTitle("Devices")
         }
     }
 }

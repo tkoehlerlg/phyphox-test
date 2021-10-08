@@ -12,13 +12,27 @@ class DeviceRowModel: ObservableObject {
     let services: Services
     let deviceName: String
     @Published private(set) var distance: String?
-    @Published private(set) var connectionState: ConnectionState = .listed
-    let device: Device
+    private var allowConnecting: Bool = true
+    @Published private(set) var connectionState: ConnectionState = .listed {
+        didSet {
+            switch connectionState {
+            case .connected:
+                allowConnecting = false
+            case .depending:
+                allowConnecting = false
+            case .error:
+                allowConnecting = true
+            case .listed:
+                allowConnecting = true
+            }
+        }
+    }
+    let deviceType: DeviceType
 
     enum ConnectionState {
         case connected, depending, error, listed
     }
-    enum Device {
+    enum DeviceType {
         case watch, phone
     }
 
@@ -27,16 +41,17 @@ class DeviceRowModel: ObservableObject {
     init(
         deviceName: String,
         services: Services,
-        device: Device
+        deviceType: DeviceType
     ) {
         self.services = services
         self.deviceName = deviceName
-        self.device = device
+        self.deviceType = deviceType
     }
 
     func startConnection() {
+        guard allowConnecting else { return }
         self.connectionState = .depending
-        switch device {
+        switch deviceType {
         case .watch:
             connectToWatch()
         case .phone:
@@ -62,5 +77,11 @@ class DeviceRowModel: ObservableObject {
                 self?.distance = response.distanceString
             }
             .store(in: &cancellable)
+    }
+}
+
+extension DeviceRowModel: Equatable {
+    static func == (lhs: DeviceRowModel, rhs: DeviceRowModel) -> Bool {
+        lhs.deviceName == rhs.deviceName
     }
 }

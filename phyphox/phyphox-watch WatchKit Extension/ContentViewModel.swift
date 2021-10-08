@@ -12,40 +12,29 @@ class ContentViewModel: ObservableObject {
     private let services: Services
     var cancellable = Set<AnyCancellable>()
 
-    @Published var appleWatchIsConnected: Bool
-    @Published var label: String = ""
+    @Published private(set) var iPhoneIsConnected: Bool
+    @Published private(set) var distanceToPhoneString: String?
 
     init(services: Services) {
         self.services = services
-        appleWatchIsConnected = services.watchSession.watchIsConnected
-        services.watchSession.$watchIsConnected
-            .receive(on: DispatchQueue.main)
-            .sink { [weak self] response in
-                self?.appleWatchIsConnected = response
-            }
-            .store(in: &cancellable)
+        iPhoneIsConnected = services.watchSession.connectedToCounterpart
+        services.watchSession.$connectedToCounterpart.assign(to: &$iPhoneIsConnected)
 
-        services.watchSession.receiveMessages
+        services.nearbyService.$iPhoneConnection
             .receive(on: DispatchQueue.main)
-            .sink { [weak self] message in
-                self?.label = message
-            }
-            .store(in: &cancellable)
-    }
+            .sink { [weak self] iPhoneConnection in
+                guard let self = self else { return }
+                guard let iPhoneConnection = iPhoneConnection else { return }
+                iPhoneConnection.updateHandler
+                    .receive(on: DispatchQueue.main)
+                    .sink { response in
+                        print(response)
+                    } receiveValue: { response in
+                        self.distanceToPhoneString = response.distanceString
+                    }
+                    .store(in: &self.cancellable)
 
-    func startMonitor() {
-        services.nearbyService.currentNearbyObjects.first?.updateHandler
-            .receive(on: DispatchQueue.main)
-            .sink(receiveCompletion: { response in
-                switch response {
-                case .finished:
-                    print("iPhone connected")
-                case let .failure(error):
-                    print("connection error: \(error)")
-                }
-            }, receiveValue: { [weak self] response in
-                self?.label = "Distance: \(String(format: "%.3f", response.distance ?? 0))m"
-            })
+            }
             .store(in: &cancellable)
     }
 }

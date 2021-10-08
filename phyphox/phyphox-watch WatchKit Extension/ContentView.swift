@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import NearbyInteraction
 
 struct ContentView: View {
     @ObservedObject var model: ContentViewModel
@@ -18,17 +19,22 @@ struct ContentView: View {
 
     var body: some View {
         ZStack {
-            Color(model.appleWatchIsConnected ? .green : .red)
-                .opacity(0.5)
+            (model.iPhoneIsConnected ? Color.green.opacity(0.5) : Color.red)
                 .ignoresSafeArea()
-            VStack {
-                Text(model.label)
-                Button {
-                    model.startMonitor()
-                } label: {
-                    Text("Start Monitor")
-                }
+            Text(text)
+                .multilineTextAlignment(.center)
+                .padding()
+        }
+    }
 
+    var text: String {
+        if !model.iPhoneIsConnected {
+            return "Öffne die Phyphox-App auf deinem iPhone."
+        } else {
+            if !NearbyService.nearbySessionIsAvailable {
+                return "NearbyInteraction wird nicht unterstüzt."
+            } else {
+                return model.distanceToPhoneString ?? "Tippe auf deinen iPhone auf \"Apple Watch\" um eine verbindung herzustellen."
             }
         }
     }
@@ -39,16 +45,3 @@ struct ContentView_Previews: PreviewProvider {
         ContentView(services: Services())
     }
 }
-
-//            Text("**Version 1.0**")
-//            Line(data: model.xDataArray, frame: .constant(CGRect(x: 0, y: 0, width: 200, height: 80)))
-//            Text("**X**: \(String(format: "%.2f", model.currentXData))")
-//            Text("**UpdateTI**: \(String(format: "%.3f", model.accelerometerService.accelerometerUpdateInterval))")
-//            HStack {
-//                Button {
-//                    model.accelerometerService.startRecording()
-//                } label: {
-//                    Label("Start", systemImage: "paperplane")
-//                        .foregroundColor(model.watchServices.watchIsConnected ? .green : .red)
-//                }
-//            }

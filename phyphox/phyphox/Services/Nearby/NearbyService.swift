@@ -34,7 +34,6 @@ final class NearbyService: NSObject, ObservableObject {
     }
 
     func startNearbySession() {
-        print(NISession.isSupported)
         guard NISession.isSupported else {
             print("This device doesn't support Nearby Interaction.")
             return
