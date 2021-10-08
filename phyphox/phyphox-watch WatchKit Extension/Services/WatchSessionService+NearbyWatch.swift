@@ -18,9 +18,10 @@ extension WatchSessionService {
             updateHandler: .init()
         )
 
+        print("Wer a sagt muss auch b sagen")
         // send token to iPhone
         guard let encryptedToken = nearbyService.discoveryTokenEncrypted else { return }
         replyHandler(["NearbySessionResponse": encryptedToken])
-        print("Hey ich bin da")
+        print("b")
     }
 }
