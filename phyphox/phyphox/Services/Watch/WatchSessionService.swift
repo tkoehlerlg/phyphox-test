@@ -115,6 +115,9 @@ extension WatchSessionService: WCSessionDelegate {
         #if os(watchOS)
         // ask watch to reply
         askWatchToReplyToMessage(message, replyHandler: replyHandler)
+        guard let encryptedToken = nearbyService.discoveryTokenEncrypted else { return }
+        replyHandler(["NearbySessionResponse": encryptedToken])
+        print("c")
         #endif
         // Feature Requests
         if let request = message["FeatureRequest"] as? String {
