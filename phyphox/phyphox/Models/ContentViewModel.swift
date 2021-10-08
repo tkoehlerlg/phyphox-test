@@ -35,7 +35,9 @@ class ContentViewModel: ObservableObject {
                             print(response)
                         }, receiveValue: { response in
                             if response {
-                                self.devices.append(watch)
+                                if !self.devices.contains(where: { $0 == watch }) {
+                                    self.devices.append(watch)
+                                }
                             } else {
                                 self.devices.removeAll(where: { $0 == watch })
                             }
